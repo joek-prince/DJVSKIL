@@ -2,12 +2,20 @@
 
 ## Versions
 - V1: transactions + AVS, portal-based token generation
-- V2: transactions + AVS, portal-based token generation
-- V3: latest, supports encrypted card data and API-based token generation
+- V2: transactions + AVS, portal-based token generation; adds Google Pay, Paya Token, ACH Token, HSA/FSA
+- V3: latest; supports encrypted card data and API-based token generation (Authentication Token API)
 
 Prefer V3 when:
 - encryptedCardData is used
-- newer token API flows are required
+- API-based token generation is needed (instead of manual portal)
+
+## Endpoints
+- V1/V2 Sandbox: `https://payment.ipospays.tech/api/v1/ipostransact`
+- V3 Sandbox: `https://payment.ipospays.tech/api/v3/ipostransact`
+- V1/V2 Production: `https://payment.ipospays.com/api/v1/ipostransact`
+- V3 Production: `https://payment.ipospays.com/api/v3/ipostransact`
+
+Use the V3 endpoint exclusively for `encryptedCardData` transactions.
 
 ## Common transaction types
 - 1 = Sale
@@ -16,6 +24,7 @@ Prefer V3 when:
 - 3 = Refund
 - 6 = Ticket
 - 7 = Tip Adjust
+- 0 = Zero Dollar Tip Adjust
 - 4 = Batch Settlement
 - 8 = Incremental Auth
 - 9 = Open Batch
@@ -24,22 +33,36 @@ Prefer V3 when:
 - 12 / response 23 = Gift flows are documented
 - HSA/FSA and Level 3 / VISA CEDP are supported by documented payload extensions
 
-## Auth
-For V3 token generation, docs describe:
-- apiKey
-- secretKey
-- scope = PaymentTokenization
+## Auth — V1 / V2 (portal-based)
+Log in to iPOSpays portal → Settings → Generate Ecom/TOP Merchant Keys → select TPN → Generate Token.
+Send the resulting token in the `token` request header.
 
-Access token behavior:
-- valid for 24 hours
-- 30-minute grace period after expiry
-- may include AuthenticationRefreshRequired: true during grace period
+## Auth — V3 (API-based Authentication Token API)
+POST credentials to the Authentication Token API:
+```json
+{
+  "apiKey": "your_api_key_here",
+  "secretKey": "your_secret_key_here",
+  "scope": "PaymentTokenization"
+}
+```
+- `apiKey` and `secretKey` are issued by iPOSpays
+- `scope` must be exactly `"PaymentTokenization"` for iPOS Transact
+- All three fields are required for V3; may not be mandatory for V1/V2
+
+### Token lifetime and grace period
+- Token is valid for 24 hours
+- After expiry: 30-minute grace period during which the expired token still works
+- During grace period: response header includes `AuthenticationRefreshRequired: true`
+- Must call the Refresh Token API to get a new token during the grace period
+- Both the expired (within grace period) and new token work in the 30-minute window
+- After grace period ends: expired token is invalid; only new token accepted
 
 ## Important request concepts
-- merchantAuthentication.merchantId = TPN / merchant identifier
-- transactionReferenceId = caller-generated unique reference
-- amount is typically sent in cents/smallest-unit style string
-- applySteamSettingTipFeeTax controls whether portal-configured fees/taxes/tips are calculated
+- `merchantAuthentication.merchantId` = TPN / merchant identifier
+- `transactionReferenceId` = caller-generated unique reference
+- `amount` is typically sent in cents/smallest-unit style string
+- `applySteamSettingTipFeeTax` controls whether portal-configured fees/taxes/tips are calculated
 
 ## Card transaction input choices
 1. paymentTokenId

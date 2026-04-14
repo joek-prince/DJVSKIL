@@ -36,10 +36,14 @@ Non-negotiable rules:
 Use these references:
 - For choosing the correct product/API, read `references/decision-guide.md`
 - For token behavior and token-type confusion, read `references/token-model.md`
-- For iPOS Transact details, read `references/transact-guide.md`
+- For iPOS Transact details (auth, endpoints, transaction types, V3), read `references/transact-guide.md`
+- For Freedom to Design (JS embed, Google/Apple Pay, ACH form, paymentTokenId), read `references/ftd-guide.md`
+- For Hosted Payment Page (request params, notification modes, webhook/redirect, card tokenization), read `references/hpp-guide.md`
+- For Recurring Payments API (subscription create/edit/cancel/list, token lookup), read `references/recurring-guide.md`
+- For SPIn REST API (terminal operations, endpoints, error codes, GeneralResponse), read `references/spin-guide.md`
 - For Tap to Pay, read `references/tap-to-pay-guide.md`
 - For native terminal SDKs, read `references/native-terminal-sdks.md`
-- For FEED, batch reports, and status checks, read `references/reporting-and-feed-guide.md`
+- For FEED (HMAC concatenation spec), Batch Report API, and Transaction Status Check, read `references/reporting-and-feed-guide.md`
 - For clear-card / PCI-sensitive flows, read `references/clear-card-encryption.md`
 - For onboarding merchants and TPNs, read `references/onboarding-guide.md`
 - For errors, read `references/error-guide.md`

@@ -23,6 +23,9 @@ Mandatory response pattern:
 
 Non-negotiable rules:
 - Never describe Freedom to Design (FTD) as the full processor path. FTD is mainly for browser-side collection/tokenization and still depends on iPOS Transact to complete payment processing.
+- Never describe FTD as hosted fields or as removing PCI scope. FTD card and ACH inputs are native `<input>` elements in the merchant's own page; the FTD script reads PAN/CVV (and for ACH: account, routing, SSN, DOB, DL) from the merchant DOM. PAN never reaches the merchant server, but the merchant page is in scope (SAQ A-EP at best, not SAQ A). For true scope reduction recommend HPP.
+- Never show the HPP/Transact ecom `token` in browser code. That portal token also authorizes iPOS Transact sales, voids, refunds, and status lookups. Only FTD's `security_key` is designed to be page-visible, and it should be a TPN-scoped token used for nothing else.
+- Never let the browser decide the amount or whether a payment succeeded. Set `amount` on the server from the stored order; treat wallet/FTD callbacks and `notifyByRedirect` params as untrusted; confirm with `queryPaymentStatus` or the Transact response before fulfilling.
 - Never confuse `paymentTokenId` with reusable `cardToken` / `iPOS Token`.
   - `paymentTokenId` = single-use token, typically from FTD
   - `cardToken` / `iPOS Token` = reusable token from prior flows like Transact, HPP, or SPIn

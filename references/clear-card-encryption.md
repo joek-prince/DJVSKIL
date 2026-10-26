@@ -7,8 +7,8 @@ If the application accesses or handles clear card data, the integrating applicat
 
 Do not recommend this flow casually.
 Prefer hosted/tokenized paths when possible:
-- HPP
-- FTD
+- HPP (fully hosted; keeps card data off the merchant page)
+- FTD (reduces scope: PAN never reaches your server, but inputs live in your page, so the page itself stays in PCI scope — see ftd-guide.md)
 - Tap to Pay
 - SPIn
 - reusable token flows

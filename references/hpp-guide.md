@@ -9,6 +9,8 @@ Token is generated manually from the iPOSpays portal:
 Settings → Generate Ecom/TOP Merchant Keys → select TPN → Generate Token
 Send as `token` header in all requests.
 
+This token is a merchant secret equivalent to iPOS Transact credentials (same portal path, same TPN). Server-side only. Never ship it in page JavaScript or a frontend bundle; call `getHostedPaymentPage` from your backend. The vendor's AngularJs sample calls it from the browser — do not copy that pattern.
+
 ## getHostedPaymentPage request structure
 Six primary objects:
 
@@ -34,10 +36,10 @@ Six primary objects:
 - `notifyByReturn`: true — result returned in the API response synchronously
 - `notifyBySMS`: true — payment status sent by SMS to `mobileNumber`
 - `notifyByPOST`: true — payment status posted to `postApiUrl`
-- `notifyByRedirect`: true — redirects to `callbackUrl` with payment status appended
+- `notifyByRedirect`: true — redirects to `callbackUrl` with payment status appended. These query params are unsigned and attacker-controllable; never mark an order paid from them alone
 - `mobileNumber`: phone number for SMS notification
 - `postApiUrl`: merchant's endpoint to receive payment status
-- `postApiAuthKey`: auth token key for the postAPI callback
+- `postApiAuthKey`: auth token key for the postAPI callback. Always set a high-entropy value and verify it on your endpoint; an empty key means anyone can POST a fake `Successful` payload
 - `callbackUrl`: redirect URL after payment (for `notifyByRedirect`)
 
 ### preferences fields
@@ -75,7 +77,7 @@ Key fields returned in the callback/response:
 - `accountNumber` (masked)
 
 ## queryPaymentStatus API
-Used to check payment status by `transactionReferenceId`.
+Used to check payment status by `transactionReferenceId`. Call it server-side before fulfilling any order that was reported via `notifyByRedirect` or an unauthenticated `notifyByPOST`.
 Endpoint: same base URL, different path (queryPaymentStatus)
 Required: `merchantAuthentication.merchantId` + `merchantAuthentication.transactionReferenceId`
 
@@ -96,6 +98,8 @@ Required: `merchantAuthentication.merchantId` + `merchantAuthentication.transact
 - Amount must be multiplied by 100 (value in cents, last 2 digits treated as decimals)
 - `notifyByRedirect` and `notifyByPOST` can be combined
 - `notifyBySMS` is independent of the other notification modes
-- `transactionReferenceId` must be unique per transaction
+- `transactionReferenceId` must be unique per transaction. Generate it server-side (unguessable, not `Math.random()`) and persist it with the expected amount
+- Build `transactionRequest.amount` from the server-side order, never from a client-supplied value
+- Before fulfillment require `transactionStatus` = Successful AND `totalAmount` (and `transactionReferenceId`) matching the stored order. A customer who tampers with the amount can otherwise pay $0.01 and receive a full-price order
 - `cardToken` returned from HPP is reusable; `paymentTokenId` from FTD is single-use — do not conflate
 - Token from sandbox will not work in production
